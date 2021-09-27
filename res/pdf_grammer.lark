@@ -1,0 +1,49 @@
+?program: pdf_file
+
+comment: /\%[^\n]*/
+
+obj_int     : SIGNED_INT
+obj_real    : SIGNINT_DECIMAL
+obj_str     : obj_str_ltr | obj_str_hex
+obj_str_ltr : "(" _STRING_ESC_INNER? ")"
+obj_str_hex : "<"HEXDIGIT+">"
+obj_name    : "/"CNAME
+obj_array   : "["obj*"]"
+obj_dict    : "<<"(obj_name obj)*">>"
+obj_stream  : obj_dict "stream" /.+/* "endstream"
+obj_null    : "null"
+obj_indir   : INT INT "obj" obj "endobj"
+obj_ref     : INT INT "R"
+
+pdf_file : header obj_indir* xref_table trailer
+
+header : comment+
+xref_table : "xref" INT INT xref_row*
+xref_row : INT INT /[fn]/
+trailer : "trailer" obj_dict "startxref" INT "%%EOF"
+
+obj : obj_int
+    | obj_real   
+    | obj_str
+    | obj_name   
+    | obj_array  
+    | obj_dict   
+    | obj_stream 
+    | obj_null   
+    | obj_indir  
+    | obj_ref    
+
+_STRING_INNER: /.+?/
+_STRING_ESC_INNER: _STRING_INNER /(?<!\\)(\\\\)*?/ 
+
+SIGNINT_DECIMAL : ["+"|"-"] DECIMAL
+
+%import common.INT
+%import common.SIGNED_INT
+%import common.DECIMAL
+// %import common._STRING_ESC_INNER
+%import common.HEXDIGIT
+%import common.CNAME
+%import common.NEWLINE
+%import common.WS
+%ignore WS

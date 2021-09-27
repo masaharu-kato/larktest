@@ -139,6 +139,5 @@ cython_debug/
 
 # Other directories
 /.vscode
-/res
 /examples
 /trial
